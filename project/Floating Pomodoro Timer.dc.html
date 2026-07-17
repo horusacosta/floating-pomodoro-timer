@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Manrope:ital@0;1&display=swap"/>
+<style>
+@keyframes pom-pulse { 0%,100% { opacity: 1 } 50% { opacity: .55 } }
+body { margin: 0; background: transparent; font-family: 'Manrope', system-ui, sans-serif; }
+</style>
+</helmet>
+
+<div style="{{ outerStyle }}">
+  <div style="{{ cardStyle }}">
+
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 18px 0 18px;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div style="{{ dotStyle }}"></div>
+        <span style="{{ brandTextStyle }}">Pomodoro</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <button style="{{ pinBtnStyle }}" onClick="{{ togglePin }}" title="Always on top">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2 L12 12 M7 7 L17 7 M6 12 L18 12 L15 17 L9 17 Z" stroke="{{ iconStroke }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="12" y1="17" x2="12" y2="22" stroke="{{ iconStroke }}" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <button style="{{ themeBtnStyle }}" onClick="{{ toggleTheme }}" title="Toggle theme">
+          <div style="{{ themeKnobTrackStyle }}">
+            <div style="{{ themeKnobStyle }}"></div>
+          </div>
+        </button>
+        <button style="{{ gearBtnStyle }}" onClick="{{ toggleSettings }}" title="Settings">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="3" stroke="{{ iconStroke }}" stroke-width="2"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke="{{ iconStroke }}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <sc-if value="{{ settingsOpen }}">
+      <div style="{{ settingsPanelStyle }}">
+        <div style="display:flex; align-items:center; justify-content:space-between;">
+          <span style="{{ settingsLabelStyle }}">Transparency</span>
+          <span style="{{ settingsValueStyle }}">{{ opacityLabel }}</span>
+        </div>
+        <input type="range" min="40" max="100" step="5" value="{{ opacityPercent }}" onChange="{{ onOpacityChange }}" style="{{ sliderStyle }}"/>
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-top:12px;">
+          <span style="{{ settingsLabelStyle }}">Sound</span>
+          <button style="{{ soundToggleTrackStyle }}" onClick="{{ toggleSound }}">
+            <div style="{{ soundToggleKnobStyle }}"></div>
+          </button>
+        </div>
+      </div>
+    </sc-if>
+
+    <div style="display:flex; gap:8px; padding:16px 18px 0 18px;">
+      <button style="{{ tabFocusStyle }}" onClick="{{ selectFocus }}">Focus</button>
+      <button style="{{ tabBreakStyle }}" onClick="{{ selectBreak }}">Break</button>
+      <button style="{{ tabCustomStyle }}" onClick="{{ selectCustom }}">Custom</button>
+    </div>
+
+    <sc-if value="{{ isCustomMode }}">
+      <div style="display:flex; align-items:center; justify-content:center; gap:14px; padding-top:14px;">
+        <button style="{{ stepBtnStyle }}" onClick="{{ decCustom }}">−</button>
+        <span style="{{ customMinutesLabelStyle }}">{{ customMinutesDisplay }}</span>
+        <button style="{{ stepBtnStyle }}" onClick="{{ incCustom }}">+</button>
+      </div>
+    </sc-if>
+
+    <div style="display:flex; justify-content:center; padding:24px 18px 6px 18px;">
+      <div style="position:relative; width:200px; height:200px;">
+        <svg width="200" height="200" viewBox="0 0 200 200" style="transform:rotate(-90deg);">
+          <circle cx="100" cy="100" r="88" fill="none" stroke="{{ trackColor }}" stroke-width="14"/>
+          <circle cx="100" cy="100" r="88" fill="none" stroke="{{ accentColor }}" stroke-width="14" stroke-linecap="round" stroke-dasharray="{{ ringCircumference }}" stroke-dashoffset="{{ ringOffset }}" style="transition: stroke-dashoffset 0.4s linear;"/>
+        </svg>
+        <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+          <span style="{{ timeTextStyle }}">{{ timeDisplay }}</span>
+          <span style="{{ modeLabelStyle }}">{{ modeLabel }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; align-items:center; justify-content:center; gap:6px; padding-bottom:6px;">
+      <sc-for list="{{ sessionDots }}" as="dot" hint-placeholder-count="4">
+        <div style="{{ dot.style }}"></div>
+      </sc-for>
+    </div>
+
+    <div style="display:flex; align-items:center; justify-content:center; gap:14px; padding:14px 18px 22px 18px;">
+      <button style="{{ resetBtnStyle }}" onClick="{{ reset }}" title="Reset">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+          <path d="M3 12a9 9 0 1 0 3-6.7" stroke="{{ iconStroke }}" stroke-width="2" stroke-linecap="round"/>
+          <path d="M3 4v5h5" stroke="{{ iconStroke }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button style="{{ mainBtnStyle }}" onClick="{{ toggleRunning }}">
+        <sc-if value="{{ running }}" hint-placeholder-val="{{ false }}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="{{ mainIconColor }}"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+        </sc-if>
+        <sc-if value="{{ notRunning }}" hint-placeholder-val="{{ true }}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="{{ mainIconColor }}"><path d="M7 4l14 8-14 8V4z"/></svg>
+        </sc-if>
+        <span>{{ mainBtnLabel }}</span>
+      </button>
+      <div style="width:37px;"></div>
+    </div>
+
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 380, &quot;height&quot;: 560}}">
+class Component extends DCLogic {
+  state = {
+    theme: 'dark',
+    mode: 'focus',
+    customMinutes: 15,
+    remaining: 25 * 60,
+    running: false,
+    sessionCount: 0,
+    opacityPercent: 100,
+    soundOn: true,
+    pinned: false,
+    settingsOpen: false,
+  };
+
+  durations() {
+    return { focus: 25 * 60, break: 5 * 60, custom: this.state.customMinutes * 60 };
+  }
+
+  componentDidMount() {
+    this._interval = setInterval(() => {
+      if (!this.state.running) return;
+      this.setState(s => {
+        if (s.remaining <= 1) {
+          const nextCount = s.mode === 'focus' ? (s.sessionCount + 1) % 5 : s.sessionCount;
+          this.beep();
+          return { remaining: 0, running: false, sessionCount: nextCount };
+        }
+        return { remaining: s.remaining - 1 };
+      });
+    }, 1000);
+  }
+
+  componentWillUnmount() {
+    clearInterval(this._interval);
+  }
+
+  beep() {
+    if (!this.state.soundOn) return;
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value = 880;
+      g.gain.setValueAtTime(0.15, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+      o.start(); o.stop(ctx.currentTime + 0.5);
+    } catch (e) {}
+  }
+
+  toggleTheme = () => this.setState(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' }));
+  toggleSound = () => this.setState(s => ({ soundOn: !s.soundOn }));
+  togglePin = () => this.setState(s => ({ pinned: !s.pinned }));
+  toggleSettings = () => this.setState(s => ({ settingsOpen: !s.settingsOpen }));
+  onOpacityChange = (e) => this.setState({ opacityPercent: parseInt(e.target.value, 10) });
+
+  switchMode(mode) {
+    const d = this.durations()[mode];
+    this.setState({ mode, remaining: d, running: false });
+  }
+  selectFocus = () => this.switchMode('focus');
+  selectBreak = () => this.switchMode('break');
+  selectCustom = () => this.switchMode('custom');
+
+  incCustom = () => this.setState(s => {
+    const m = Math.min(90, s.customMinutes + 5);
+    return { customMinutes: m, remaining: s.mode === 'custom' ? m * 60 : s.remaining };
+  });
+  decCustom = () => this.setState(s => {
+    const m = Math.max(5, s.customMinutes - 5);
+    return { customMinutes: m, remaining: s.mode === 'custom' ? m * 60 : s.remaining };
+  });
+
+  toggleRunning = () => this.setState(s => ({ running: !s.running }));
+  reset = () => this.setState(s => ({ remaining: this.durations()[s.mode], running: false }));
+
+  formatTime(sec) {
+    const m = Math.floor(sec / 60).toString().padStart(2, '0');
+    const s = Math.floor(sec % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  }
+
+  renderVals() {
+    const s = this.state;
+    const dark = s.theme === 'dark';
+    const durations = this.durations();
+    const duration = durations[s.mode];
+    const fraction = duration > 0 ? s.remaining / duration : 0;
+    const r = 88;
+    const circumference = 2 * Math.PI * r;
+    const offset = circumference * (1 - fraction);
+
+    const palette = dark ? {
+      bg: 'oklch(0.24 0.055 262)',
+      card: 'oklch(0.27 0.05 262)',
+      cardBorder: 'oklch(0.36 0.05 262 / 0.6)',
+      text: 'oklch(0.96 0.01 262)',
+      subtext: 'oklch(0.72 0.03 262)',
+      track: 'oklch(0.36 0.04 262)',
+      pillBg: 'oklch(0.32 0.05 262)',
+      pillActiveBg: 'oklch(0.4 0.06 262)',
+      iconStroke: 'oklch(0.9 0.01 262)',
+      orange: 'oklch(0.74 0.16 55)',
+      purple: 'oklch(0.66 0.16 300)',
+      blue: 'oklch(0.72 0.11 245)',
+    } : {
+      bg: 'oklch(0.97 0.008 262)',
+      card: 'oklch(0.995 0.003 262)',
+      cardBorder: 'oklch(0.88 0.01 262)',
+      text: 'oklch(0.28 0.03 262)',
+      subtext: 'oklch(0.5 0.02 262)',
+      track: 'oklch(0.9 0.01 262)',
+      pillBg: 'oklch(0.94 0.008 262)',
+      pillActiveBg: 'oklch(0.88 0.015 262)',
+      iconStroke: 'oklch(0.35 0.03 262)',
+      orange: 'oklch(0.68 0.17 55)',
+      purple: 'oklch(0.56 0.17 300)',
+      blue: 'oklch(0.55 0.13 245)',
+    };
+    const accentColor = s.mode === 'focus' ? palette.orange : s.mode === 'break' ? palette.purple : palette.blue;
+    const alpha = s.opacityPercent / 100;
+
+    const hexToCard = palette.card.replace(')', ` / ${alpha})`).replace('oklch(', 'oklch(');
+
+    const modeLabel = s.mode === 'focus' ? 'Focus' : s.mode === 'break' ? 'Break' : 'Custom';
+    const mainBtnLabel = s.running ? 'Pause' : (s.remaining === duration ? 'Start' : 'Resume');
+
+    const tabStyle = (active) => ({
+      flex: 1, padding: '9px 0', borderRadius: 12, border: 'none', cursor: 'pointer',
+      background: active ? palette.pillActiveBg : palette.pillBg,
+      color: active ? palette.text : palette.subtext,
+      fontWeight: 700, fontSize: 13, fontFamily: 'Manrope, sans-serif',
+      boxShadow: active ? `inset 0 0 0 1.5px ${accentColorFor(s.mode)}` : 'none',
+      transition: 'all .2s ease',
+    });
+    function accentColorFor(m) {
+      return m === 'focus' ? palette.orange : m === 'break' ? palette.purple : palette.blue;
+    }
+
+    const iconBtnBase = {
+      width: 26, height: 26, borderRadius: 8, border: 'none', cursor: 'pointer',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'transparent',
+    };
+
+    const sessionDots = [0, 1, 2, 3].map(i => ({
+      style: {
+        width: 6, height: 6, borderRadius: 999,
+        background: i < s.sessionCount ? palette.orange : palette.track,
+        transition: 'background .3s ease',
+      }
+    }));
+
+    return {
+      outerStyle: {
+        width: 340, height: 'fit-content', display: 'flex', justifyContent: 'center',
+        fontFamily: 'Manrope, sans-serif', boxSizing: 'border-box',
+      },
+      cardStyle: {
+        width: 340, borderRadius: 28,
+        background: `color-mix(in oklch, ${palette.card} ${s.opacityPercent}%, transparent)`,
+        border: `1px solid ${palette.cardBorder}`,
+        boxShadow: dark ? '0 20px 60px -12px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.03) inset' : '0 20px 50px -16px rgba(30,30,60,0.25)',
+        backdropFilter: 'blur(18px)',
+        overflow: 'hidden', boxSizing: 'border-box',
+      },
+      dotStyle: { width: 8, height: 8, borderRadius: 999, background: accentColor, animation: s.running ? 'pom-pulse 1.6s ease-in-out infinite' : 'none' },
+      brandTextStyle: { fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: palette.subtext },
+      iconStroke: palette.iconStroke,
+      pinBtnStyle: { ...iconBtnBase, background: s.pinned ? palette.pillActiveBg : 'transparent' },
+      themeBtnStyle: { ...iconBtnBase, width: 34 },
+      themeKnobTrackStyle: { width: 30, height: 16, borderRadius: 999, background: palette.pillBg, position: 'relative', padding: 2, boxSizing: 'border-box' },
+      themeKnobStyle: { width: 12, height: 12, borderRadius: 999, background: dark ? palette.blue : palette.orange, transform: dark ? 'translateX(14px)' : 'translateX(0)', transition: 'transform .25s ease' },
+      gearBtnStyle: { ...iconBtnBase, background: s.settingsOpen ? palette.pillActiveBg : 'transparent' },
+
+      settingsPanelStyle: {
+        margin: '10px 18px 0 18px', padding: '12px 14px', borderRadius: 14,
+        background: palette.pillBg, border: `1px solid ${palette.cardBorder}`,
+      },
+      settingsLabelStyle: { fontSize: 12, fontWeight: 600, color: palette.subtext },
+      settingsValueStyle: { fontSize: 12, fontWeight: 700, color: palette.text },
+      sliderStyle: { width: '100%', marginTop: 8, accentColor: palette.blue },
+      opacityPercent: s.opacityPercent,
+      opacityLabel: `${s.opacityPercent}%`,
+      onOpacityChange: this.onOpacityChange,
+      soundToggleTrackStyle: { width: 34, height: 18, borderRadius: 999, background: s.soundOn ? palette.blue : palette.track, position: 'relative', border: 'none', cursor: 'pointer', padding: 2, boxSizing: 'border-box' },
+      soundToggleKnobStyle: { width: 14, height: 14, borderRadius: 999, background: dark ? palette.card : '#fff', transform: s.soundOn ? 'translateX(16px)' : 'translateX(0)', transition: 'transform .2s ease' },
+
+      tabFocusStyle: tabStyle(s.mode === 'focus'),
+      tabBreakStyle: tabStyle(s.mode === 'break'),
+      tabCustomStyle: tabStyle(s.mode === 'custom'),
+      isCustomMode: s.mode === 'custom',
+      customMinutesDisplay: `${s.customMinutes} min`,
+      customMinutesLabelStyle: { fontSize: 14, fontWeight: 700, color: palette.text, minWidth: 56, textAlign: 'center' },
+      stepBtnStyle: { width: 28, height: 28, borderRadius: 999, border: 'none', cursor: 'pointer', background: palette.pillBg, color: palette.text, fontSize: 16, fontWeight: 700, lineHeight: 1 },
+
+      trackColor: palette.track,
+      accentColor,
+      ringCircumference: circumference,
+      ringOffset: offset,
+      timeTextStyle: { fontSize: 40, fontWeight: 800, color: palette.text, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' },
+      modeLabelStyle: { fontSize: 12, fontWeight: 700, color: palette.subtext, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 4 },
+      timeDisplay: this.formatTime(s.remaining),
+      modeLabel,
+
+      sessionDots,
+
+      resetBtnStyle: { width: 44, height: 44, borderRadius: 999, border: 'none', cursor: 'pointer', background: palette.pillBg, display: 'flex', alignItems: 'center', justifyContent: 'center' },
+      mainBtnStyle: {
+        display: 'flex', alignItems: 'center', gap: 8, padding: '13px 28px', borderRadius: 999,
+        border: 'none', cursor: 'pointer', background: accentColor, color: dark ? 'oklch(0.2 0.03 262)' : '#fff',
+        fontWeight: 800, fontSize: 14, boxShadow: `0 8px 20px -6px ${accentColor}`,
+      },
+      mainIconColor: dark ? 'oklch(0.2 0.03 262)' : '#fff',
+      running: s.running,
+      notRunning: !s.running,
+      mainBtnLabel,
+
+      toggleTheme: this.toggleTheme,
+      toggleSound: this.toggleSound,
+      togglePin: this.togglePin,
+      toggleSettings: this.toggleSettings,
+      settingsOpen: s.settingsOpen,
+      selectFocus: this.selectFocus,
+      selectBreak: this.selectBreak,
+      selectCustom: this.selectCustom,
+      incCustom: this.incCustom,
+      decCustom: this.decCustom,
+      toggleRunning: this.toggleRunning,
+      reset: this.reset,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

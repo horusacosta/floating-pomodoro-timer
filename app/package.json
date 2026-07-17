@@ -1,0 +1,27 @@
+{
+  "name": "floating-pomodoro-timer",
+  "version": "1.0.0",
+  "description": "A floating, always-on-top Pomodoro timer widget",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win zip --x64"
+  },
+  "build": {
+    "appId": "com.horus.floatingpomodorotimer",
+    "productName": "Floating Pomodoro Timer",
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*"
+    ],
+    "win": {
+      "target": "zip",
+      "signAndEditExecutable": false
+    }
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  }
+}
