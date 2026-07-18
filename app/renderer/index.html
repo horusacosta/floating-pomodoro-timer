@@ -25,6 +25,13 @@
           <button class="theme-btn" id="themeBtn" title="Toggle theme">
             <div class="theme-track"><div class="theme-knob" id="themeKnob"></div></div>
           </button>
+          <button class="icon-btn" id="dashboardBtn" title="Work Track">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+              <line x1="5" y1="20" x2="5" y2="12" stroke-width="2" stroke-linecap="round"/>
+              <line x1="12" y1="20" x2="12" y2="6" stroke-width="2" stroke-linecap="round"/>
+              <line x1="19" y1="20" x2="19" y2="14" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
           <button class="icon-btn" id="gearBtn" title="Settings">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="3" stroke-width="2"/>
@@ -43,6 +50,10 @@
         <div class="settings-row" style="margin-top:12px;">
           <span class="settings-label">Sound</span>
           <button class="sound-track" id="soundBtn"><div class="sound-knob" id="soundKnob"></div></button>
+        </div>
+        <div class="settings-row" style="margin-top:12px;">
+          <span class="settings-label">Accent color</span>
+          <input type="color" id="neutralColorPicker" class="color-picker" value="#6b6f8f" title="Customize interface color"/>
         </div>
       </div>
 

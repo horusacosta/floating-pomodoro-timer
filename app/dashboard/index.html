@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Work Track — Pomodoro</title>
+<link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div class="page">
+    <header class="page-header">
+      <h1>Work Track</h1>
+      <a class="export-link" href="/api/export.csv" download>Export CSV</a>
+    </header>
+
+    <section class="kpi-row" id="kpiRow" aria-label="Summary">
+      <div class="stat-tile">
+        <span class="stat-label">Today</span>
+        <span class="stat-value" id="kpiToday">—</span>
+        <span class="stat-sub" id="kpiTodayCount"></span>
+      </div>
+      <div class="stat-tile">
+        <span class="stat-label">Week to date</span>
+        <span class="stat-value" id="kpiWeek">—</span>
+        <span class="stat-sub" id="kpiWeekCount"></span>
+      </div>
+      <div class="stat-tile">
+        <span class="stat-label">Month to date</span>
+        <span class="stat-value" id="kpiMonth">—</span>
+        <span class="stat-sub" id="kpiMonthCount"></span>
+      </div>
+    </section>
+
+    <section class="detail" aria-label="Detail view">
+      <div class="detail-toolbar">
+        <div class="view-tabs" id="viewTabs" role="tablist">
+          <button class="view-tab" data-view="day" role="tab">Day</button>
+          <button class="view-tab" data-view="week" role="tab">Week</button>
+          <button class="view-tab" data-view="month" role="tab">Month</button>
+        </div>
+        <button class="table-toggle" id="tableToggle">Show table</button>
+      </div>
+
+      <div class="nav-row">
+        <button class="nav-btn" id="prevBtn" aria-label="Previous period">‹</button>
+        <span class="nav-label" id="navLabel">—</span>
+        <button class="nav-btn" id="nextBtn" aria-label="Next period">›</button>
+      </div>
+
+      <div class="chart-scroll">
+        <div id="chartArea"></div>
+      </div>
+
+      <div id="tableArea" hidden>
+        <table class="sessions-table">
+          <thead>
+            <tr><th>Date</th><th>Start</th><th>End</th><th>Duration</th></tr>
+          </thead>
+          <tbody id="sessionsTableBody"></tbody>
+        </table>
+        <p class="empty-note" id="tableEmptyNote" hidden>No sessions in this period.</p>
+      </div>
+    </section>
+  </div>
+  <script src="dashboard.js"></script>
+</body>
+</html>

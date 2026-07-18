@@ -9,9 +9,9 @@
     pinned: false,
     settingsOpen: false,
     timers: {
-      focus: { remaining: 25 * 60, running: false },
-      break: { remaining: 5 * 60, running: false },
-      custom: { remaining: 15 * 60, running: false },
+      focus: { remaining: 25 * 60, running: false, startedAt: null },
+      break: { remaining: 5 * 60, running: false, startedAt: null },
+      custom: { remaining: 15 * 60, running: false, startedAt: null },
     },
   };
 
@@ -39,16 +39,60 @@
     return mode === 'focus' ? '--orange' : mode === 'break' ? '--purple' : '--blue';
   }
 
+  function logFocusSession(startedAtMs, endedAtMs, durationSec) {
+    if (!startedAtMs) return;
+    window.electronAPI.logSession({
+      mode: 'focus',
+      startedAt: new Date(startedAtMs).toISOString(),
+      endedAt: new Date(endedAtMs).toISOString(),
+      durationSec,
+    }).catch((err) => console.error('Failed to log session', err));
+  }
+
+  function srgbToLinear(c) {
+    const cs = c / 255;
+    return cs <= 0.04045 ? cs / 12.92 : Math.pow((cs + 0.055) / 1.055, 2.4);
+  }
+
+  function hexToOklch(hex) {
+    const h = hex.replace('#', '');
+    const r = srgbToLinear(parseInt(h.slice(0, 2), 16));
+    const g = srgbToLinear(parseInt(h.slice(2, 4), 16));
+    const b = srgbToLinear(parseInt(h.slice(4, 6), 16));
+
+    const l = 0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b;
+    const m = 0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b;
+    const s = 0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b;
+    const l_ = Math.cbrt(l), m_ = Math.cbrt(m), s_ = Math.cbrt(s);
+
+    const a = 1.9779984951 * l_ - 2.4285922050 * m_ + 0.4505937099 * s_;
+    const bb = 0.0259040371 * l_ + 0.7827717662 * m_ - 0.8086757660 * s_;
+
+    const chroma = Math.sqrt(a * a + bb * bb);
+    let hue = Math.atan2(bb, a) * 180 / Math.PI;
+    if (hue < 0) hue += 360;
+    return { hue, chroma };
+  }
+
+  // Scales how saturated the widget's neutral chrome looks, driven by how
+  // vivid the user's picked color is (a muted pick keeps the default subtlety;
+  // a vivid pick pushes the chrome further toward that hue).
+  function chromaScaleFor(chroma) {
+    return Math.min(4, Math.max(1, chroma / 0.05));
+  }
+
   // Elements
   const card = document.getElementById('card');
   const dot = document.getElementById('dot');
   const pinBtn = document.getElementById('pinBtn');
   const themeBtn = document.getElementById('themeBtn');
+  const dashboardBtn = document.getElementById('dashboardBtn');
   const gearBtn = document.getElementById('gearBtn');
   const settingsPanel = document.getElementById('settingsPanel');
   const opacityLabel = document.getElementById('opacityLabel');
   const opacitySlider = document.getElementById('opacitySlider');
   const soundBtn = document.getElementById('soundBtn');
+  const neutralColorPicker = document.getElementById('neutralColorPicker');
   const tabFocus = document.getElementById('tabFocus');
   const tabBreak = document.getElementById('tabBreak');
   const tabCustom = document.getElementById('tabCustom');
@@ -156,13 +200,29 @@
   }));
 
   mainBtn.addEventListener('click', () => setState(s => {
-    const timers = { ...s.timers, [s.mode]: { ...s.timers[s.mode], running: !s.timers[s.mode].running } };
+    const current = s.timers[s.mode];
+    const startingFresh = !current.running && current.remaining === durations()[s.mode];
+    const next = { ...current, running: !current.running };
+    if (startingFresh) next.startedAt = Date.now();
+    const timers = { ...s.timers, [s.mode]: next };
     return { timers };
   }));
   resetBtn.addEventListener('click', () => setState(s => {
-    const timers = { ...s.timers, [s.mode]: { remaining: durations()[s.mode], running: false } };
+    const timers = { ...s.timers, [s.mode]: { remaining: durations()[s.mode], running: false, startedAt: null } };
     return { timers };
   }));
+
+  dashboardBtn.addEventListener('click', () => window.electronAPI.openDashboard());
+
+  neutralColorPicker.addEventListener('input', (e) => {
+    const { hue, chroma } = hexToOklch(e.target.value);
+    const scale = chromaScaleFor(chroma);
+    document.documentElement.style.setProperty('--neutral-hue', hue.toFixed(2));
+    document.documentElement.style.setProperty('--neutral-chroma-scale', scale.toFixed(2));
+    localStorage.setItem('pomodoro:neutralHue', hue.toFixed(2));
+    localStorage.setItem('pomodoro:neutralChromaScale', scale.toFixed(2));
+    localStorage.setItem('pomodoro:neutralColorHex', e.target.value);
+  });
 
   document.addEventListener('contextmenu', (e) => {
     e.preventDefault();
@@ -179,9 +239,12 @@
       if (!t.running) continue;
       touched = true;
       if (t.remaining <= 1) {
-        timers[key] = { remaining: 0, running: false };
+        timers[key] = { remaining: 0, running: false, startedAt: null };
         beep();
-        if (key === 'focus') sessionCount = (sessionCount + 1) % 5;
+        if (key === 'focus') {
+          sessionCount = (sessionCount + 1) % 5;
+          logFocusSession(t.startedAt, Date.now(), durations().focus);
+        }
       } else {
         timers[key] = { ...t, remaining: t.remaining - 1 };
       }
@@ -196,6 +259,15 @@
     }
   });
   ro.observe(card);
+
+  (function initNeutralHue() {
+    const savedHue = localStorage.getItem('pomodoro:neutralHue');
+    const savedScale = localStorage.getItem('pomodoro:neutralChromaScale');
+    const savedHex = localStorage.getItem('pomodoro:neutralColorHex');
+    if (savedHue) document.documentElement.style.setProperty('--neutral-hue', savedHue);
+    if (savedScale) document.documentElement.style.setProperty('--neutral-chroma-scale', savedScale);
+    if (savedHex) neutralColorPicker.value = savedHex;
+  })();
 
   render();
 })();

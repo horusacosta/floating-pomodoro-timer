@@ -1,22 +1,42 @@
-# CODING AGENTS: READ THIS FIRST
+# Floating Pomodoro Timer
 
-This is a **handoff bundle** from Claude Design (claude.ai/design).
+A floating, always-on-top Pomodoro timer widget built with Electron, plus a local work-tracking dashboard.
 
-A user mocked up designs in HTML/CSS/JS using an AI design tool, then exported this bundle so a coding agent can implement the designs for real.
+## Features
 
-## What you should do — IMPORTANT
+- **Focus / Break / Custom modes**, each with its own independent timer — switching tabs doesn't pause or reset whatever's running in the background.
+- **Real always-on-top pinning**, draggable frameless window, adjustable transparency, and a dark/light theme toggle.
+- **Custom accent color picker** in Settings — pick any color and the app derives a matching interface palette from it (the Focus/Break/Custom accent colors stay fixed since they're functional signals).
+- **Session logging** — every completed Focus session is recorded (start/end time, duration) to a local JSON file. Only sessions that run to natural completion count; paused, reset, or Break/Custom sessions are never logged.
+- **Work Track dashboard** — a local server (auto-started with the app, `http://localhost:4287`, bound to localhost only) shows daily/weekly/monthly stats with charts, KPI tiles (Today / Week-to-date / Month-to-date), full history navigation, a raw session table, and CSV export. Weeks run Monday 8:00am → the following Monday 7:59am. Accessible both from the app's own popout window (the header's bar-chart icon) and from any regular browser tab.
+- **WAV alarm sound** on session completion.
 
-**Read `floating-pomodoro-timer-ui/project/Floating Pomodoro Timer.dc.html` in full.** The user had this file open when they triggered the handoff, so it's almost certainly the primary design they want built. Read it top to bottom — don't skim. Then **follow its imports**: open every file it pulls in (shared components, CSS, scripts) so you understand how the pieces fit together before you start implementing.
+## Project layout
 
-**If anything is ambiguous, ask the user to confirm before you start implementing.** It's much cheaper to clarify scope up front than to build the wrong thing.
+```
+app/
+  main.js              Electron main process (windows, IPC, dashboard server startup)
+  preload.js           contextBridge API exposed to the widget
+  renderer/            The floating widget UI (HTML/CSS/vanilla JS)
+  lib/                 Session data store + date-boundary math (shared by main process and server)
+  server/              Express app serving the dashboard + stats API
+  dashboard/            Dashboard frontend (served locally, also loaded by the popout window)
+project/                Original Claude Design handoff files (reference only, not used at runtime)
+```
 
-## About the design files
+## Running it
 
-The design medium is **HTML/CSS/JS** — these are prototypes, not production code. Your job is to **recreate them pixel-perfectly** in whatever technology makes sense for the target codebase (React, Vue, native, whatever fits). Match the visual output; don't copy the prototype's internal structure unless it happens to fit.
+```
+cd app
+npm install
+npm start
+```
 
-**Don't render these files in a browser or take screenshots unless the user asks you to.** Everything you need — dimensions, colors, layout rules — is spelled out in the source. Read the HTML and CSS directly; a screenshot won't tell you anything they don't.
+## Building a Windows package
 
-## Bundle contents
+```
+cd app
+npm run build:win
+```
 
-- `floating-pomodoro-timer-ui/README.md` — this file
-- `floating-pomodoro-timer-ui/project/` — the `Floating Pomodoro Timer UI` project files (HTML prototypes, assets, components)
+Produces `app/dist/Floating Pomodoro Timer-1.0.0-win.zip` — a portable build (no installer). Unzip on Windows and run `Floating Pomodoro Timer.exe` directly; no Node.js required there.

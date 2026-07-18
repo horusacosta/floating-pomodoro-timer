@@ -13,7 +13,10 @@
     "files": [
       "main.js",
       "preload.js",
-      "renderer/**/*"
+      "renderer/**/*",
+      "lib/**/*",
+      "server/**/*",
+      "dashboard/**/*"
     ],
     "win": {
       "target": "zip",
@@ -23,5 +26,8 @@
   "devDependencies": {
     "electron": "^31.0.0",
     "electron-builder": "^24.13.3"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
   }
 }
