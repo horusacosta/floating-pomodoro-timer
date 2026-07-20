@@ -20,6 +20,8 @@
   }
 
   const alarmAudio = new Audio('assets/notification.wav');
+  let notifyEnabled = false;
+  let notifyTopic = '';
 
   function beep() {
     if (!state.soundOn) return;
@@ -27,6 +29,22 @@
       alarmAudio.currentTime = 0;
       alarmAudio.play();
     } catch (e) {}
+  }
+
+  function sendPushNotification(mode) {
+    if (!notifyEnabled || !notifyTopic) return;
+    const messages = {
+      focus: { title: 'Pomodoro - Focus done', body: 'Focus session complete — take a break!', tags: 'tomato' },
+      break: { title: 'Pomodoro - Break done', body: "Break's over — back to work!", tags: 'coffee' },
+      custom: { title: 'Pomodoro - Timer done', body: 'Custom timer complete!', tags: 'hourglass' },
+      test: { title: 'Pomodoro - Test', body: 'Test notification from your Pomodoro timer 🍅', tags: 'bell' },
+    };
+    const m = messages[mode] || messages.custom;
+    fetch(`https://ntfy.sh/${encodeURIComponent(notifyTopic)}`, {
+      method: 'POST',
+      headers: { Title: m.title, Tags: m.tags },
+      body: m.body,
+    }).catch((err) => console.error('Failed to send push notification', err));
   }
 
   function formatTime(sec) {
@@ -93,6 +111,10 @@
   const opacitySlider = document.getElementById('opacitySlider');
   const soundBtn = document.getElementById('soundBtn');
   const neutralColorPicker = document.getElementById('neutralColorPicker');
+  const notifyBtn = document.getElementById('notifyBtn');
+  const notifyTopicRow = document.getElementById('notifyTopicRow');
+  const notifyTopicInput = document.getElementById('notifyTopicInput');
+  const notifyTestBtn = document.getElementById('notifyTestBtn');
   const tabFocus = document.getElementById('tabFocus');
   const tabBreak = document.getElementById('tabBreak');
   const tabCustom = document.getElementById('tabCustom');
@@ -224,6 +246,18 @@
     localStorage.setItem('pomodoro:neutralColorHex', e.target.value);
   });
 
+  notifyBtn.addEventListener('click', () => {
+    notifyEnabled = !notifyEnabled;
+    notifyBtn.classList.toggle('on', notifyEnabled);
+    notifyTopicRow.hidden = !notifyEnabled;
+    localStorage.setItem('pomodoro:notifyEnabled', notifyEnabled ? '1' : '');
+  });
+  notifyTopicInput.addEventListener('input', (e) => {
+    notifyTopic = e.target.value.trim();
+    localStorage.setItem('pomodoro:notifyTopic', notifyTopic);
+  });
+  notifyTestBtn.addEventListener('click', () => sendPushNotification('test'));
+
   document.addEventListener('contextmenu', (e) => {
     e.preventDefault();
     window.electronAPI.showContextMenu();
@@ -241,6 +275,7 @@
       if (t.remaining <= 1) {
         timers[key] = { remaining: 0, running: false, startedAt: null };
         beep();
+        sendPushNotification(key);
         if (key === 'focus') {
           sessionCount = (sessionCount + 1) % 5;
           logFocusSession(t.startedAt, Date.now(), durations().focus);
@@ -267,6 +302,14 @@
     if (savedHue) document.documentElement.style.setProperty('--neutral-hue', savedHue);
     if (savedScale) document.documentElement.style.setProperty('--neutral-chroma-scale', savedScale);
     if (savedHex) neutralColorPicker.value = savedHex;
+  })();
+
+  (function initNotifySettings() {
+    notifyEnabled = localStorage.getItem('pomodoro:notifyEnabled') === '1';
+    notifyTopic = localStorage.getItem('pomodoro:notifyTopic') || '';
+    notifyBtn.classList.toggle('on', notifyEnabled);
+    notifyTopicRow.hidden = !notifyEnabled;
+    notifyTopicInput.value = notifyTopic;
   })();
 
   render();

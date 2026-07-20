@@ -55,6 +55,14 @@
           <span class="settings-label">Accent color</span>
           <input type="color" id="neutralColorPicker" class="color-picker" value="#6b6f8f" title="Customize interface color"/>
         </div>
+        <div class="settings-row" style="margin-top:12px;">
+          <span class="settings-label">Phone notify</span>
+          <button class="sound-track" id="notifyBtn"><div class="sound-knob" id="notifyKnob"></div></button>
+        </div>
+        <div class="notify-topic-row" id="notifyTopicRow" hidden>
+          <input type="text" id="notifyTopicInput" class="text-input" placeholder="ntfy.sh topic (pick something hard to guess)"/>
+          <button class="test-btn" id="notifyTestBtn">Test</button>
+        </div>
       </div>
 
       <div class="tabs">
